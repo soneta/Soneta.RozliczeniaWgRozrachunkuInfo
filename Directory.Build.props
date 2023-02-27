@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <SonetaPackageVersion>2212.3.10-alfa.88750</SonetaPackageVersion>
+    <SonetaTargetFramework>net472</SonetaTargetFramework>
+	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AggregateOutput>true</AggregateOutput>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Authors>$(Product)</Authors>
+    <Title>Element systemu firmy Soneta</Title>
+    <Description>Składnik systemu firmy Soneta.</Description>
+    <Company>Soneta</Company>
+    <Product>Soneta.RozliczeniaWgRozrachunkuInfo</Product>
+    <Copyright>Copyright (C) Soneta sp. z o.o. 2002-2022.</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.3.37" >
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

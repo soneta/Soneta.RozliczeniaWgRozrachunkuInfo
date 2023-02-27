@@ -1,0 +1,14 @@
+resources:
+  repositories:
+  - repository: self
+    clean: true
+  - repository: addons-pipelines
+    type: git
+    name: soneta/addons-pipelines
+    ref: refs/heads/master
+
+stages:
+- template: templates/stages.yml@addons-pipelines
+  parameters:
+    solution: 'Soneta.RozliczeniaWgRozrachunkuInfo.sln'
+    publishNuget: none
