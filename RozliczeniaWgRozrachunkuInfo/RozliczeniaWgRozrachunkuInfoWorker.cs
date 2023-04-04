@@ -94,8 +94,10 @@ namespace RozliczeniaWgRozrachunkuInfo
 
                     if (platnosc != null && platnosc.StanRozliczenia != StanRozliczenia.NiePodlega)
                     {
-                        if (platnosc.Kwota.Symbol == _elemOpisuAnalitycznego.Kwota.Symbol)
+                        if (platnosc.Kwota.Symbol == _elemOpisuAnalitycznego.Kwota.Symbol && platnosc.Kwota.Symbol == _elemOpisuAnalitycznego.KwotaDodatkowa.Symbol)
                             LiczPlatnoscZgodnySymbol(platnosc);
+                        else if (platnosc.Kwota.Symbol == _elemOpisuAnalitycznego.Kwota.Symbol && platnosc.Kwota.Symbol != _elemOpisuAnalitycznego.KwotaDodatkowa.Symbol)
+                            LiczPlatnoscNiezgodnySymbolKwotaDodatkowa(platnosc);
                         else
                             LiczPlatnoscNiezgodnySymbol(platnosc);
 
@@ -106,8 +108,10 @@ namespace RozliczeniaWgRozrachunkuInfo
 
                     if (zaplata != null && zaplata.StanRozliczenia != StanRozliczenia.NiePodlega)
                     {
-                        if (zaplata.Kwota.Symbol == _elemOpisuAnalitycznego.Kwota.Symbol)
+                        if(zaplata.Kwota.Symbol == _elemOpisuAnalitycznego.Kwota.Symbol && zaplata.Kwota.Symbol == _elemOpisuAnalitycznego.KwotaDodatkowa.Symbol)
                             LiczZaplateZgodnySymbol(zaplata);
+                        else if (zaplata.Kwota.Symbol == _elemOpisuAnalitycznego.Kwota.Symbol && zaplata.Kwota.Symbol != _elemOpisuAnalitycznego.KwotaDodatkowa.Symbol)
+                            LiczZaplateNiezgodnySymbolKwotaDodatkowa(zaplata);
                         else
                             LiczZaplateNiezgodnySymbol(zaplata);
 
@@ -122,7 +126,7 @@ namespace RozliczeniaWgRozrachunkuInfo
 
             private void LiczPlatnoscZgodnySymbol(Platnosc platnosc)
             {
-                Currency iloscRozliczonego = Currency.Zero;
+                Currency iloscRozliczonego = new Currency(Currency.Zero.Value, _elemOpisuAnalitycznego.Kwota.Symbol);
                 foreach (RozliczenieSP rozliczenia in platnosc.Rozliczenia)
                 {
                     if (rozliczenia.Data <= _data)
@@ -133,9 +137,51 @@ namespace RozliczeniaWgRozrachunkuInfo
                 {
                     rozliczonoZobowiazanie = (iloscRozliczonego / platnosc.Kwota) * _elemOpisuAnalitycznego.Kwota;
                     doRozliczeniaZobowiazanie = _elemOpisuAnalitycznego.Kwota - rozliczonoZobowiazanie;
+                    if (rozliczonoZobowiazanie.Symbol == Currency.SystemSymbol && doRozliczeniaZobowiazanie.Symbol == Currency.SystemSymbol)
+                    {
+                        rozliczonoZobowiazaniePLNHist = rozliczonoZobowiazanie;
+                        doRozliczeniaZobowiazaniePLNHist = doRozliczeniaZobowiazanie;
+                    }
                 }
                 else if (platnosc.Typ == TypRozrachunku.Należność)
                 {
+                    rozliczonoNaleznosc = (iloscRozliczonego / platnosc.Kwota) * _elemOpisuAnalitycznego.Kwota;
+                    doRozliczeniaNaleznosc = _elemOpisuAnalitycznego.Kwota - rozliczonoNaleznosc;
+                    if (rozliczonoNaleznosc.Symbol == Currency.SystemSymbol && doRozliczeniaNaleznosc.Symbol == Currency.SystemSymbol)
+                    {
+                        rozliczonoNaleznoscPLNHist = rozliczonoNaleznosc;
+                        doRozliczeniaNaleznoscPLNHist = doRozliczeniaNaleznosc;
+                    }
+                }
+            }
+
+            private void LiczPlatnoscNiezgodnySymbolKwotaDodatkowa(Platnosc platnosc)
+            {
+                Currency iloscRozliczonegoPLN = Currency.Zero;
+                Currency iloscRozliczonego = new Currency(Currency.Zero.Value, _elemOpisuAnalitycznego.Kwota.Symbol);
+                foreach (RozliczenieSP rozliczenia in platnosc.Rozliczenia)
+                {
+                    if (rozliczenia.Data <= _data)
+                    {
+                        iloscRozliczonegoPLN += new Currency(rozliczenia.KwotaDokumentu.Value * (decimal)platnosc.Kurs, Currency.SystemSymbol);
+                        iloscRozliczonego += rozliczenia.KwotaDokumentu;
+                    }
+                }
+
+                Currency platnoscKwota = new Currency(platnosc.Kwota.Value * (decimal)platnosc.Kurs, Currency.SystemSymbol);
+                Currency elementOAKwota = new Currency((double)_elemOpisuAnalitycznego.Kwota.Value * platnosc.Kurs, Currency.SystemSymbol);
+
+                if (platnosc.Typ == TypRozrachunku.Zobowiązanie)
+                {
+                    rozliczonoZobowiazaniePLNHist = (iloscRozliczonegoPLN / platnoscKwota) * elementOAKwota;
+                    doRozliczeniaZobowiazaniePLNHist = elementOAKwota - rozliczonoZobowiazaniePLNHist;
+                    rozliczonoZobowiazanie = (iloscRozliczonego / platnosc.Kwota) * _elemOpisuAnalitycznego.Kwota;
+                    doRozliczeniaZobowiazanie = _elemOpisuAnalitycznego.Kwota - rozliczonoZobowiazanie;
+                }
+                else if (platnosc.Typ == TypRozrachunku.Należność)
+                {
+                    rozliczonoNaleznoscPLNHist = (iloscRozliczonegoPLN / platnoscKwota) * elementOAKwota;
+                    doRozliczeniaNaleznoscPLNHist = elementOAKwota - rozliczonoNaleznoscPLNHist;
                     rozliczonoNaleznosc = (iloscRozliczonego / platnosc.Kwota) * _elemOpisuAnalitycznego.Kwota;
                     doRozliczeniaNaleznosc = _elemOpisuAnalitycznego.Kwota - rozliczonoNaleznosc;
                 }
@@ -143,24 +189,25 @@ namespace RozliczeniaWgRozrachunkuInfo
 
             private void LiczPlatnoscNiezgodnySymbol(Platnosc platnosc)
             {
-                Currency iloscRozliczonego = Currency.Zero;
+                Currency iloscRozliczonegoPLN = Currency.Zero;
                 foreach (RozliczenieSP rozliczenia in platnosc.Rozliczenia)
                 {
                     if (rozliczenia.Data <= _data)
-                        iloscRozliczonego += new Currency(rozliczenia.KwotaDokumentu.Value * (decimal)platnosc.Kurs, _elemOpisuAnalitycznego.Kwota.Symbol);
+                        iloscRozliczonegoPLN += new Currency(rozliczenia.KwotaDokumentu.Value * (decimal)platnosc.Kurs, Currency.SystemSymbol);
                 }
 
-                Currency platnoscKwota = new Currency(platnosc.Kwota.Value * (decimal)platnosc.Kurs, _elemOpisuAnalitycznego.Kwota.Symbol);
+                Currency platnoscKwota = new Currency(platnosc.Kwota.Value * (decimal)platnosc.Kurs, Currency.SystemSymbol);
+                Currency elementOAKwota = new Currency((double)_elemOpisuAnalitycznego.Kwota.Value * platnosc.Kurs, Currency.SystemSymbol);
 
                 if (platnosc.Typ == TypRozrachunku.Zobowiązanie)
                 {
-                    rozliczonoZobowiazaniePLNHist = (iloscRozliczonego / platnoscKwota) * _elemOpisuAnalitycznego.Kwota;
-                    doRozliczeniaZobowiazaniePLNHist = _elemOpisuAnalitycznego.Kwota - rozliczonoZobowiazaniePLNHist;
+                    rozliczonoZobowiazaniePLNHist = (iloscRozliczonegoPLN / platnoscKwota) * elementOAKwota;
+                    doRozliczeniaZobowiazaniePLNHist = elementOAKwota - rozliczonoZobowiazaniePLNHist;
                 }
                 else if (platnosc.Typ == TypRozrachunku.Należność)
                 {
-                    rozliczonoNaleznoscPLNHist = (iloscRozliczonego / platnoscKwota) * _elemOpisuAnalitycznego.Kwota;
-                    doRozliczeniaNaleznoscPLNHist = _elemOpisuAnalitycznego.Kwota - rozliczonoNaleznoscPLNHist;
+                    rozliczonoNaleznoscPLNHist = (iloscRozliczonegoPLN / platnoscKwota) * elementOAKwota;
+                    doRozliczeniaNaleznoscPLNHist = elementOAKwota - rozliczonoNaleznoscPLNHist;
                 }
             }
 
@@ -177,46 +224,91 @@ namespace RozliczeniaWgRozrachunkuInfo
                 {
                     rozliczonoZobowiazanie = (iloscRozliczonego / zaplata.Kwota) * _elemOpisuAnalitycznego.Kwota;
                     doRozliczeniaZobowiazanie = _elemOpisuAnalitycznego.Kwota - rozliczonoZobowiazanie;
+                    if (rozliczonoZobowiazanie.Symbol == Currency.SystemSymbol && doRozliczeniaZobowiazanie.Symbol == Currency.SystemSymbol)
+                    {
+                        rozliczonoZobowiazaniePLNHist = rozliczonoZobowiazanie;
+                        doRozliczeniaZobowiazaniePLNHist = doRozliczeniaZobowiazanie;
+                    }
                 }
                 else if (zaplata.Typ == TypRozrachunku.Wypłata)
                 {
                     rozliczonoNaleznosc = (iloscRozliczonego / zaplata.Kwota) * _elemOpisuAnalitycznego.Kwota;
                     doRozliczeniaNaleznosc = _elemOpisuAnalitycznego.Kwota - rozliczonoNaleznosc;
+                    if (rozliczonoNaleznosc.Symbol == Currency.SystemSymbol && doRozliczeniaNaleznosc.Symbol == Currency.SystemSymbol)
+                    {
+                        rozliczonoNaleznoscPLNHist = rozliczonoNaleznosc;
+                        doRozliczeniaNaleznoscPLNHist = doRozliczeniaNaleznosc;
+                    }
+                }
+            }
+
+            private void LiczZaplateNiezgodnySymbolKwotaDodatkowa(Zaplata zaplata)
+            {
+                Currency iloscRozliczonegoPLN = Currency.Zero;
+                Currency iloscRozliczonego = new Currency(Currency.Zero.Value, _elemOpisuAnalitycznego.Kwota.Symbol);
+
+                foreach (RozliczenieSP rozliczenia in zaplata.Rozliczenia)
+                {
+                    if (rozliczenia.Data <= _data)
+                    {
+                        iloscRozliczonegoPLN += new Currency(rozliczenia.KwotaDokumentu.Value * (decimal)zaplata.Kurs, Currency.SystemSymbol);
+                        iloscRozliczonego += rozliczenia.KwotaDokumentu;
+                    }
+                }
+
+                Currency zaplataKwota = new Currency(zaplata.Kwota.Value * (decimal)zaplata.Kurs, Currency.SystemSymbol);
+                Currency elementOAKwota = new Currency((double)_elemOpisuAnalitycznego.Kwota.Value * zaplata.Kurs, Currency.SystemSymbol);
+
+                if (zaplata.Typ == TypRozrachunku.Wpłata)
+                {
+                    rozliczonoZobowiazaniePLNHist = (iloscRozliczonegoPLN / zaplataKwota) * elementOAKwota;
+                    doRozliczeniaZobowiazaniePLNHist = elementOAKwota - rozliczonoZobowiazaniePLNHist;
+                    rozliczonoZobowiazanie = (iloscRozliczonego / zaplata.Kwota) * _elemOpisuAnalitycznego.Kwota;
+                    doRozliczeniaZobowiazanie = _elemOpisuAnalitycznego.Kwota - rozliczonoZobowiazanie;
+                }
+                else if (zaplata.Typ == TypRozrachunku.Wypłata)
+                {
+                    rozliczonoNaleznoscPLNHist = (iloscRozliczonegoPLN / zaplataKwota) * elementOAKwota;
+                    doRozliczeniaNaleznoscPLNHist = elementOAKwota - rozliczonoNaleznoscPLNHist;
+                    rozliczonoNaleznosc = (iloscRozliczonego / zaplataKwota) * elementOAKwota;
+                    doRozliczeniaNaleznosc = elementOAKwota - rozliczonoNaleznosc;
                 }
             }
 
             private void LiczZaplateNiezgodnySymbol(Zaplata zaplata)
             {
-                Currency iloscRozliczonego = Currency.Zero;
+                Currency iloscRozliczonegoPLN = Currency.Zero;
+
                 foreach (RozliczenieSP rozliczenia in zaplata.Rozliczenia)
                 {
                     if (rozliczenia.Data <= _data)
-                        iloscRozliczonego += new Currency(rozliczenia.KwotaDokumentu.Value * (decimal)zaplata.Kurs, _elemOpisuAnalitycznego.Kwota.Symbol);
+                        iloscRozliczonegoPLN += new Currency(rozliczenia.KwotaDokumentu.Value * (decimal)zaplata.Kurs, Currency.SystemSymbol);
                 }
 
-                Currency zaplataKwota = new Currency(zaplata.Kwota.Value * (decimal)zaplata.Kurs, _elemOpisuAnalitycznego.Kwota.Symbol);
+                Currency zaplataKwota = new Currency(zaplata.Kwota.Value * (decimal)zaplata.Kurs, Currency.SystemSymbol);
+                Currency elementOAKwota = new Currency((double)_elemOpisuAnalitycznego.Kwota.Value * zaplata.Kurs, Currency.SystemSymbol);
 
                 if (zaplata.Typ == TypRozrachunku.Wpłata)
                 {
-                    rozliczonoZobowiazaniePLNHist = (iloscRozliczonego / zaplataKwota) * _elemOpisuAnalitycznego.Kwota;
-                    doRozliczeniaZobowiazaniePLNHist = _elemOpisuAnalitycznego.Kwota - rozliczonoZobowiazaniePLNHist;
+                    rozliczonoZobowiazaniePLNHist = (iloscRozliczonegoPLN / zaplataKwota) * elementOAKwota;
+                    doRozliczeniaZobowiazaniePLNHist = elementOAKwota - rozliczonoZobowiazaniePLNHist;
                 }
                 else if (zaplata.Typ == TypRozrachunku.Wypłata)
                 {
-                    rozliczonoNaleznoscPLNHist = (iloscRozliczonego / zaplataKwota) * _elemOpisuAnalitycznego.Kwota;
-                    doRozliczeniaNaleznoscPLNHist = _elemOpisuAnalitycznego.Kwota - rozliczonoNaleznoscPLNHist;
+                    rozliczonoNaleznoscPLNHist = (iloscRozliczonegoPLN / zaplataKwota) * elementOAKwota;
+                    doRozliczeniaNaleznoscPLNHist = elementOAKwota - rozliczonoNaleznoscPLNHist;
                 }
             }
 
             private void LiczSaldo()
             {
-                rozliczonoSaldo = rozliczonoNaleznosc - rozliczonoZobowiazanie >= 0
-                    ? rozliczonoNaleznosc - rozliczonoZobowiazanie
-                    : -(rozliczonoNaleznosc - rozliczonoZobowiazanie);
+                rozliczonoSaldo = new Currency(rozliczonoNaleznosc.Value - rozliczonoZobowiazanie.Value >= 0
+                    ? rozliczonoNaleznosc.Value - rozliczonoZobowiazanie.Value
+                    : -(rozliczonoNaleznosc.Value - rozliczonoZobowiazanie.Value), _elemOpisuAnalitycznego.Kwota.Symbol);
 
-                doRozliczeniaSaldo = doRozliczeniaNaleznosc - doRozliczeniaZobowiazanie >= 0
-                    ? doRozliczeniaNaleznosc - doRozliczeniaZobowiazanie
-                    : -(doRozliczeniaNaleznosc - doRozliczeniaZobowiazanie);
+                doRozliczeniaSaldo = new Currency(doRozliczeniaNaleznosc.Value - doRozliczeniaZobowiazanie.Value >= 0
+                    ? doRozliczeniaNaleznosc.Value - doRozliczeniaZobowiazanie.Value
+                    : -(doRozliczeniaNaleznosc.Value - doRozliczeniaZobowiazanie.Value), _elemOpisuAnalitycznego.Kwota.Symbol);
 
                 rozliczonoSaldoPLNHist = rozliczonoNaleznoscPLNHist - rozliczonoZobowiazaniePLNHist >= 0
                     ? rozliczonoNaleznoscPLNHist - rozliczonoZobowiazaniePLNHist
