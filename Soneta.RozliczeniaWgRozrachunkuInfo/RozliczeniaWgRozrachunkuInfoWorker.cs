@@ -366,5 +366,22 @@ namespace RozliczeniaWgRozrachunkuInfo
         
         [Caption("Termin")]
         public Date Termin => _elemOpisuAnalitycznegoDict[ElemOpisuAnalitycznego].termin;
+
+        [Caption("Typ")]
+        public TypRozrachunku? DokumentTyp
+        {
+            get
+            {
+                if (_elemOpisuAnalitycznego.Zrodlo is Platnosc pla)
+                {
+                    return pla.Typ;
+                }
+                else if(_elemOpisuAnalitycznego.Zrodlo is Zaplata zap)
+                {
+                    return zap.Typ;
+                }
+                return null; 
+            }
+        }
     }
 }

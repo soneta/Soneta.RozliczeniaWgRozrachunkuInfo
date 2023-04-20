@@ -3,4 +3,12 @@
   <PropertyGroup>
     <TargetFramework>$(SonetaTargetFramework)</TargetFramework>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="UI\OpisAnalityczny2.viewform.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="UI\OpisAnalityczny2.viewform.xml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

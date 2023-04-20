@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DataForm Contexts="License.CRM" xmlns="http://www.enova.pl/schema/form.xsd">
+	<Flow Name="FilterPanel">
+		<Field CaptionHtml="Oddział" Width="25" EditValue="{OddziałParams.OddzialFirmy}" />
+		<Field CaptionHtml="Oddział" Width="25" EditValue="{OddziałParams.Oddział}" />
+		<Field CaptionHtml="Pododdziały" Width="7" EditValue="{OddziałParams.ZPododdzialami}" />
+		<Field CaptionHtml="Data" Width="13" Visibility="false" EditValue="{OpisAnalityczny2+Params.Data}"/>
+		<Field CaptionHtml="Zakres" Width="22" EditValue="{OpisAnalityczny2+Params.Zakres}" Important="true" />
+		<Field CaptionHtml="Indeks" Width="22" EditValue="{OpisAnalityczny2+Params.Indeks}" Important="true" />
+		<Field CaptionHtml="Typ" Width="22" EditValue="{OpisAnalityczny2+Params.Dokumenty}" Important="true" />
+		<Field CaptionHtml="Rodzaj" Width="22" EditValue="{OpisAnalityczny2+Params.Rodzaj}" Important="true" />
+		<Field CaptionHtml="Wymiar" Width="16" EditValue="{OpisAnalityczny2+Params.Wymiar}" Important="true" />
+		<Field CaptionHtml="Symbol" Width="16" EditValue="{OpisAnalityczny2+Params.Symbol}" Important="true" />
+		<Field CaptionHtml="Typ" Width="32" EditValue="{OpisAnalityczny2+Params.Typ}" Important="true" />
+		<Field CaptionHtml="Definicja" Width="25" EditValue="{OpisAnalityczny2+Params.Definicja}" />
+		<Field CaptionHtml="Dokument" Width="25" EditValue="{OpisAnalityczny2+Params.Ewidencja}" />
+		<Field CaptionHtml="Budżet" Width="16" EditValue="{OpisAnalityczny2+Params.Budzet}" />
+		<Field CaptionHtml="Pozycja budżetu" Width="16" EditValue="{OpisAnalityczny2+Params.PozycjaBudzetu}" />
+		<Field CaptionHtml="Centrum kosztów" Width="16" EditValue="{OpisAnalityczny2+Params.CentrumKosztow}" />
+	</Flow>
+	<Grid Name="List">
+		<Appearance Condition="{?[Ewidencja.Stan] = 'Bufor'}" BackColor="" ForeColor="#008000" />
+		<Appearance Condition="{?[Ewidencja.Stan] = 'Wprowadzony'}" BackColor="" ForeColor="#C04000" />
+		<Field CaptionHtml="Data" Width="11" EditValue="{Data}" Footer="None" />
+		<Field CaptionHtml="Ewidencja" Width="32" EditValue="{Ewidencja}" Footer="None" />
+		<Field CaptionHtml="Wymiar" Width="11" EditValue="{Wymiar}" Footer="None" />
+		<Field CaptionHtml="Symbol" Width="14" EditValue="{Symbol}" Footer="None" />
+		<Field CaptionHtml="Kwota" Width="16" EditValue="{Kwota}" Footer="Sum" />
+		<Field CaptionHtml="Opis" Width="30" EditValue="{Opis}" Footer="None" />
+		<Field CaptionHtml="Źródło" Width="21" EditValue="{Zrodlo}" Footer="None" />
+		<Field CaptionHtml="Centrum kosztów" Width="25" EditValue="{CentrumKosztow}" Footer="None" />
+
+		<Data Name="allowEditInPlace" Value="1" />
+		<Data Name="autoCollapseGroup" Value="0" />
+		<Data Name="storeAppearance" Value="0" />
+		<Data Name="useDefaultAppearance" Value="1" />
+		<Data Name="changeColourInSelected" Value="0" />
+		<Data Name="featuresMultiGroup" Value="0" />
+		<Data Name="featuresSubTreeGroup" Value="1" />
+		<Data Name="locatorFilter" Value="" />
+		<Data Name="useDashWhenLocating" Value="" />
+	</Grid>
+</DataForm>
